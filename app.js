@@ -133,10 +133,14 @@ const REQS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQZK7dbFrS
     if (!/remote/.test(s)) return false;
     return !/(unconfirmed|not confirmed|unclear|unknown|tbc|tbd|\?|hybrid|on.?site|office)/.test(s);
   }
-  function asksPortfolio(v) {
+  function portfolioGroup(v) {
     const s = clean(v).toLowerCase();
-    if (!s) return false;
-    return !/^(no|none|n\/a|na|-|false|0|not asked|not mentioned)$/.test(s);
+    if (!s || s === 'not stated' || /^not stated\b/.test(s)) return 'Not stated';
+    if (/^(no|none|n\/a|na|-|false|0|not asked|not mentioned)$/.test(s)) return 'Not asked';
+    return 'Asked';
+  }
+  function asksPortfolio(v) {
+    return portfolioGroup(v) === 'Asked';
   }
   function splitLanguages(v) {
     return clean(v).replace(/\([^)]*\)/g, '').split(/[,;\/|+&]|\band\b|\bor\b/i)
@@ -145,10 +149,17 @@ const REQS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQZK7dbFrS
   }
   const safeUrl = (u) => (/^https?:\/\//i.test(clean(u)) ? clean(u) : '');
 
+  function salaryUnlisted(raw) {
+    const s = clean(raw).toLowerCase();
+    if (!s) return true;
+    if (/^(not stated|n\/a|na|none|no|-+|unknown|not mentioned|tbd|tbc|unspecified|undisclosed|not disclosed|not available)$/.test(s)) return true;
+    if (/^not stated\b/.test(s)) return true;
+    return false;
+  }
   function parseSalary(raw) {
     const s = clean(raw);
-    if (!s || !/\d/.test(s)) return null;
-    const cur = /€|eur/i.test(s) ? 'EUR' : /£|gbp/i.test(s) ? 'GBP' : /chf/i.test(s) ? 'CHF' : /pln|zł/i.test(s) ? 'PLN' : /\$|usd/i.test(s) ? 'USD' : 'Unknown';
+    if (salaryUnlisted(s) || !/\d/.test(s)) return null;
+    const cur = /€|eur/i.test(s) ? 'EUR' : /£|gbp/i.test(s) ? 'GBP' : /chf/i.test(s) ? 'CHF' : /pln|zł/i.test(s) ? 'PLN' : /\$|usd/i.test(s) ? 'USD' : 'Other / unclear currency';
     const period = /(hour|hr\b|\/h\b|per h\b|hourly)/i.test(s) ? 'hour'
       : /(month|\/mo\b|\bmo\b|\/m\b|pcm|monthly|mensual|monat)/i.test(s) ? 'month'
       : /(\bday\b|daily|\/d\b)/i.test(s) ? 'day' : 'year';
@@ -241,7 +252,7 @@ const REQS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQZK7dbFrS
   const money = (n, cur) => {
     const sym = { EUR: '\u20ac', GBP: '\u00a3', USD: '$' }[cur] || '';
     const v = n >= 1000 ? Math.round(n / 1000) + 'k' : String(Math.round(n));
-    return sym ? sym + v : v + (cur && cur !== 'Unknown' ? ' ' + cur : '');
+    return sym ? sym + v : v + (cur && cur !== 'Other / unclear currency' ? ' ' + cur : '');
   };
   const shortLabel = (s, n) => (s.length > n ? s.slice(0, n - 1) + '\u2026' : s);
 
@@ -403,6 +414,15 @@ const REQS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQZK7dbFrS
     const note = document.getElementById('salary-note');
     const sum = document.getElementById('salary-summary'); sum.innerHTML = ''; sum.className = 'salary-summary';
     note.textContent = 'Salary is listed for ' + listed.length + ' of ' + jobs.length + ' jobs. Only listed salaries are shown, converted to yearly where the ad gives a monthly figure.';
+    const box = document.getElementById('box-salary');
+    let basis = document.getElementById('salary-basis');
+    if (!basis) {
+      basis = el('p', 'hint');
+      basis.id = 'salary-basis';
+      basis.style.marginTop = '8px';
+      box.insertAdjacentElement('afterend', basis);
+    }
+    basis.textContent = 'Based on ' + listed.length + ' of ' + jobs.length + ' jobs that list a salary.';
     if (!listed.length) return showEmpty('box-salary', 'No salaries listed for these filters.');
     const byCur = new Map();
     for (const j of listed) { const c = j.salary.cur; if (!byCur.has(c)) byCur.set(c, []); byCur.get(c).push(j); }
@@ -434,10 +454,22 @@ const REQS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQZK7dbFrS
 
   function renderPortfolio(jobs, reqs) {
     const box = document.getElementById('portfolio-stats'); box.innerHTML = '';
-    const asking = jobs.filter((j) => j.portfolio);
-    const big = el('div', 'big-stat', jobs.length ? pct((asking.length / jobs.length) * 100) : 'n/a');
+    const groups = { 'Asked': [], 'Not asked': [], 'Not stated': [] };
+    for (const j of jobs) groups[portfolioGroup(j.portfolioRaw)].push(j);
+    const asking = groups['Asked'];
+    const total = jobs.length;
+    const share = (n) => (total ? pct((n / total) * 100) : 'n/a');
+    const big = el('div', 'big-stat', share(asking.length));
     box.appendChild(big);
-    box.appendChild(el('p', 'hint', asking.length + ' of ' + jobs.length + ' jobs ask for a portfolio or work samples.'));
+    box.appendChild(el('p', 'hint', asking.length + ' of ' + total + ' jobs ask for a portfolio or work samples.'));
+    const groupsList = el('ul', 'stat-list');
+    for (const name of ['Asked', 'Not asked', 'Not stated']) {
+      const li = el('li');
+      li.appendChild(el('span', null, name));
+      li.appendChild(el('span', 'num', groups[name].length + ' of ' + total + ' (' + share(groups[name].length) + ')'));
+      groupsList.appendChild(li);
+    }
+    box.appendChild(groupsList);
     const fams = canonicalGroups(jobs.map((j) => j.family)); const agg = new Map();
     for (const j of jobs) { const k = keyOf(j.family) || '(not set)'; if (!agg.has(k)) agg.set(k, { name: fams.get(k) || 'Not set', n: 0, p: 0 }); const a = agg.get(k); a.n++; if (j.portfolio) a.p++; }
     const ul = el('ul', 'stat-list');
