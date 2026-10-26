@@ -4,8 +4,8 @@
    "Jobs" tab and "Comma-separated values (.csv)", publish, copy the link.
    Repeat for the "Requirements" tab. Publish ONLY these two tabs.
    ===================================================================== */
-const JOBS_CSV_URL = "PASTE_JOBS_CSV_URL_HERE";
-const REQS_CSV_URL = "PASTE_REQUIREMENTS_CSV_URL_HERE";
+const JOBS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQZK7dbFrSaUpoViKVcPZmnlaq6OE0EuYiYIdKVWaZhN8-T2hxeRAcyRbho6Xdd-zaaRuNDRFOttBxK/pub?gid=0&single=true&output=csv";
+const REQS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQZK7dbFrSaUpoViKVcPZmnlaq6OE0EuYiYIdKVWaZhN8-T2hxeRAcyRbho6Xdd-zaaRuNDRFOttBxK/pub?gid=1367936899&single=true&output=csv";
 /* ===================================================================== */
 
 (function () {
