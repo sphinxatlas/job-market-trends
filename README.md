@@ -1,1 +1,1 @@
-# job-market-trends
+Job Market Trends dashboard, served by GitHub Pages.

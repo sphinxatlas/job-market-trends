@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Job Market Trends</title>
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap header-inner">
+    <div>
+      <p class="eyebrow">Market Matrix</p>
+      <h1>Job Market Trends</h1>
+      <p class="sub" id="status">Loading the latest data...</p>
+    </div>
+    <button class="btn" id="reload" type="button">Reload data</button>
+  </div>
+</header>
+
+<main class="wrap">
+  <div id="alerts"></div>
+
+  <section class="card filters" aria-label="Filters">
+    <div class="filters-grid">
+      <label>Role family<select id="f-family"><option value="">All</option></select></label>
+      <label>Seniority<select id="f-seniority"><option value="">All</option></select></label>
+      <label>Language<select id="f-language"><option value="">All</option></select></label>
+      <label>From<input type="date" id="f-from"></label>
+      <label>To<input type="date" id="f-to"></label>
+      <div class="filter-actions"><button class="btn btn-ghost" id="f-reset" type="button">Clear filters</button></div>
+    </div>
+  </section>
+
+  <div id="content">
+    <section class="kpis" id="kpis" aria-label="Key figures"></section>
+
+    <section class="section">
+      <h2>Most requested skills and tools</h2>
+      <p class="hint">How many jobs list each one, split into must-have and nice-to-have.</p>
+      <div class="grid-2">
+        <div class="card"><h3>Top 20 hard skills</h3><div class="chart-box" id="box-hard"><canvas id="c-hard"></canvas></div></div>
+        <div class="card"><h3>Top 20 tools</h3><div class="chart-box" id="box-tools"><canvas id="c-tools"></canvas></div></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Skill gaps</h2>
+      <p class="hint">The most requested requirements marked No or Partial in the Matrix.</p>
+      <div class="card"><div class="chart-box" id="box-gaps"><canvas id="c-gaps"></canvas></div></div>
+    </section>
+
+    <section class="section">
+      <h2>Role family, seniority and salary</h2>
+      <div class="grid-2">
+        <div class="card"><h3>By role family</h3><div class="chart-box" id="box-family"><canvas id="c-family"></canvas></div></div>
+        <div class="card"><h3>By seniority</h3><div class="chart-box" id="box-seniority"><canvas id="c-seniority"></canvas></div></div>
+      </div>
+      <div class="card">
+        <h3>Salary ranges</h3>
+        <p class="hint" id="salary-note"></p>
+        <div id="salary-summary"></div>
+        <div class="chart-box" id="box-salary"><canvas id="c-salary"></canvas></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Portfolio and work samples</h2>
+      <div class="grid-2">
+        <div class="card"><h3>How often they are asked for</h3><div id="portfolio-stats"></div></div>
+        <div class="card"><h3>What they ask for</h3><div class="chart-box" id="box-portfolio"><canvas id="c-portfolio"></canvas></div></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Weekly trends</h2>
+      <div class="grid-2">
+        <div class="card"><h3>Jobs per week</h3><div class="chart-box" id="box-weeks"><canvas id="c-weeks"></canvas></div></div>
+        <div class="card"><h3>Rising skills</h3><p class="hint">Share of jobs asking for it in the last 2 weeks compared with the weeks before.</p><div class="chart-box" id="box-rising"><canvas id="c-rising"></canvas></div></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>All jobs</h2>
+      <div class="card table-card">
+        <input type="search" id="t-search" class="search" placeholder="Search company, role or location" aria-label="Search jobs">
+        <div class="table-wrap"><table id="jobs-table"><thead></thead><tbody></tbody></table></div>
+        <p class="hint" id="table-count"></p>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer class="wrap footer"><p>Reads the published Jobs and Requirements tabs on every page load.</p></footer>
+
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
